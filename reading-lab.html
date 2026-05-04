@@ -1327,11 +1327,22 @@ function openBook(id) {
   document.getElementById('tab-capture').style.display = 'block';
   document.querySelectorAll('#book-tabs .tab').forEach((t,i) => t.classList.toggle('active', i===0));
 
-  // Clear inputs
-  document.getElementById('cap-text').value = '';
-  document.getElementById('cap-thought').value = '';
-  document.getElementById('img-preview').style.display = 'none';
-  document.getElementById('capture-ai').classList.remove('show');
+  // Clear inputs (safe null check)
+  const capText = document.getElementById('cap-text');
+  const capThought = document.getElementById('cap-thought');
+  const imgPreview = document.getElementById('img-preview');
+  const captureAi = document.getElementById('capture-ai');
+  if (capText) capText.value = '';
+  if (capThought) capThought.value = '';
+  if (imgPreview) imgPreview.style.display = 'none';
+  if (captureAi) captureAi.classList.remove('show');
+  // Reset capture steps
+  const step1 = document.getElementById('cap-step1');
+  const step2 = document.getElementById('cap-step2');
+  if (step1) step1.classList.add('active');
+  if (step2) step2.classList.remove('active');
+  capOCRText = '';
+  capImageData = '';
 
   renderCards();
 
