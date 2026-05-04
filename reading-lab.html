@@ -963,16 +963,29 @@ function saveCard() {
 책: ${b.title}
 직업/역할: ${b.job||'독자'}
 캡처 내용: "${D.ocrText||'(이미지 캡처)'}"
-${thought ? '내 생각: '+thought : ''}
+${thought ? '독자의 생각: '+thought : ''}
 
-아래 형식으로:
-**핵심 한 줄** (15자 이내)
+아래 형식으로 정확히 출력해줘:
+**핵심 한 줄** (캡처 내용 핵심, 15자 이내)
 **왜 중요한가** (${b.job||'독자'} 입장 두 문장)
 **써먹을 상황**\n- 상황 1:\n- 상황 2:
-**연결 키워드** (3~5개)`;
+**연결 키워드** (3~5개)${thought ? '\n**내 생각 요약** (독자의 생각을 한 문장으로 압축)' : ''}`;
 
   callAI(prompt, $$('card-body'), ai, resp => {
-    const card = { id:Date.now(), quote:D.ocrText||'', thought, imgThumb:D.imgData||'', aiSummary:resp, date:new Date().toLocaleDateString('ko-KR') };
+    // Extract clean quote: strip markdown headers like ## 추출된 텍스트 etc.
+    const rawQuote = D.ocrText || '';
+    const cleanQuote = rawQuote
+      .replace(/^#{1,3}\s+\*?\*?[^
+*]+\*?\*?\s*
+?/gm, '') // strip ## headers
+      .replace(/\*\*/g, '')  // strip bold markers
+      .trim()
+      .split('\n').slice(0,4).join(' ') // take first 4 lines only
+      .slice(0, 300); // max 300 chars
+    // Extract thought summary
+    const tsMatch = resp.match(/\*\*내 생각 요약\*\*\n?([^\n*]+)/);
+    const thoughtSummary = tsMatch ? tsMatch[1].trim() : '';
+    const card = { id:Date.now(), quote:cleanQuote, thought, thoughtSummary, imgThumb:D.imgData||'', aiSummary:resp, date:new Date().toLocaleDateString('ko-KR') };
     if (!D.cards[b.id]) D.cards[b.id] = [];
     D.cards[b.id].unshift(card);
     saveData(); renderCards();
@@ -1009,7 +1022,7 @@ function renderCards() {
           '<div class="bcard-quote clamped" id="bq'+c.id+'">'+(c.quote||'(이미지 캡처)')+'</div>' +
           keyLine +
         '</div>' +
-        (c.thought ? '<div class="bcard-mid"><span class="bcard-thought-lbl">💭 내 생각</span><div class="bcard-thought">'+c.thought+'</div></div>' : '') +
+        (c.thought ? '<div class="bcard-mid"><span class="bcard-thought-lbl">💭 내 생각</span><div class="bcard-thought">'+(c.thoughtSummary||c.thought)+'</div></div>' : '') +
         '<div class="bcard-ai" id="ba'+c.id+'"><div style="font-size:9px;font-family:var(--mono);color:var(--amber2);letter-spacing:.15em;margin-bottom:8px;">✦ AI 정리</div><div class="ai-body" style="font-size:12px;">'+fmtAI(c.aiSummary||'')+'</div></div>' +
         '<div class="bcard-footer">' +
           '<button class="bcard-expand" onclick="toggleCard('+c.id+')">더 보기 ▾</button>' +
