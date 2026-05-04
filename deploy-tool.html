@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JK Deploy Tool</title>
+<style>
+  :root {
+    --bg: #f9f8f6;
+    --surface: #ffffff;
+    --border: #e2e0db;
+    --border-focus: #aaa8a2;
+    --text: #1a1916;
+    --text-muted: #7a7870;
+    --text-hint: #b0ae a8;
+    --accent: #1a1916;
+    --success-bg: #eaf3de;
+    --success: #3b6d11;
+    --error-bg: #fcebeb;
+    --error: #a32d2d;
+    --info-bg: #e6f1fb;
+    --info: #185fa5;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --mono: 'SF Mono', 'Fira Code', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .container { width: 100%; max-width: 680px; }
+
+  .header { margin-bottom: 2rem; }
+  .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+  .header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 5px; }
+  input[type="text"], input[type="password"], textarea, select {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 14px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--border-focus); background: #fff; }
+  textarea { font-family: var(--mono); font-size: 12px; line-height: 1.6; resize: vertical; min-height: 340px; }
+  select { cursor: pointer; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  .repo-row { display: flex; gap: 8px; align-items: flex-end; }
+  .repo-row select { flex: 1; }
+  .repo-row input { flex: 2; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; font-size: 13px; font-weight: 500;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    background: transparent; color: var(--text);
+    cursor: pointer; transition: all 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--bg); border-color: var(--border-focus); }
+  .btn:active { transform: scale(0.98); }
+  .btn.primary {
+    background: var(--accent); color: #fff;
+    border-color: var(--accent); padding: 10px 24px; font-size: 14px;
+  }
+  .btn.primary:hover { opacity: 0.85; background: var(--accent); }
+  .btn.sm { padding: 6px 12px; font-size: 12px; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .btn-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .status {
+    padding: 12px 16px; border-radius: var(--radius);
+    font-size: 13px; line-height: 1.7;
+    display: none; margin-top: 1rem;
+    white-space: pre-line;
+  }
+  .status.info { background: var(--info-bg); color: var(--info); }
+  .status.success { background: var(--success-bg); color: var(--success); }
+  .status.error { background: var(--error-bg); color: var(--error); }
+
+  .tab-row { display: flex; gap: 4px; margin-bottom: 1rem; }
+  .tab {
+    padding: 6px 14px; font-size: 13px;
+    border: 0.5px solid transparent;
+    border-radius: var(--radius);
+    cursor: pointer; background: transparent;
+    color: var(--text-muted); font-family: inherit;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  .file-drop {
+    border: 0.5px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 2rem; text-align: center;
+    cursor: pointer; color: var(--text-muted);
+    font-size: 13px; transition: all 0.15s;
+  }
+  .file-drop:hover { background: var(--bg); border-color: var(--border-focus); }
+  .file-drop.drag { background: var(--info-bg); border-color: var(--info); }
+
+  .saved-repos { margin-top: 8px; }
+  .repo-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; font-size: 12px;
+    background: var(--bg); border: 0.5px solid var(--border);
+    border-radius: 20px; cursor: pointer;
+    margin: 3px; transition: all 0.15s;
+  }
+  .repo-tag:hover { border-color: var(--border-focus); background: #fff; }
+  .repo-tag .remove { color: var(--text-muted); font-size: 14px; line-height: 1; }
+  .repo-tag .remove:hover { color: var(--error); }
+
+  .spinner {
+    display: inline-block; width: 13px; height: 13px;
+    border: 2px solid currentColor; border-top-color: transparent;
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1rem 0; }
+
+  .success-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--success);
+    margin-top: 8px; text-decoration: none;
+    font-weight: 500;
+  }
+  .success-link:hover { text-decoration: underline; }
+
+  .token-row { display: flex; gap: 8px; }
+  .token-row input { flex: 1; font-family: var(--mono); font-size: 12px; }
+
+  @media (max-width: 520px) {
+    .row, .row3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>JK Deploy Tool</h1>
+    <p>Claude에서 만든 파일을 GitHub Pages에 바로 올려요</p>
+  </div>
+
+  <!-- 설정 카드 -->
+  <div class="card" id="settingsCard">
+    <div class="card-title">설정</div>
+
+    <div class="field">
+      <label>GitHub Token</label>
+      <div class="token-row">
+        <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxx" />
+        <button class="btn sm" onclick="toggleToken()">보기</button>
+        <button class="btn sm" onclick="saveToken()">저장</button>
+      </div>
+      <p class="hint" id="tokenHint">로컬에 암호화 없이 저장돼요 — 개인 기기에서만 사용하세요</p>
+    </div>
+
+    <hr class="divider">
+
+    <div class="field">
+      <label>Repository</label>
+      <div class="repo-row">
+        <input type="text" id="repoInput" placeholder="owner/repo-name" value="joonkim-lab/reading-lab" />
+        <button class="btn sm" onclick="saveRepo()">+ 저장</button>
+      </div>
+      <div class="saved-repos" id="savedRepos"></div>
+    </div>
+
+    <div class="field">
+      <label>배포 파일 경로</label>
+      <input type="text" id="filepath" value="index.html" placeholder="index.html 또는 docs/guide.html" />
+      <p class="hint">repo 루트 기준 상대 경로</p>
+    </div>
+
+  </div>
+
+  <!-- 파일 카드 -->
+  <div class="card">
+    <div class="card-title">배포할 파일</div>
+
+    <div class="tab-row">
+      <button class="tab active" onclick="switchTab('paste')">붙여넣기</button>
+      <button class="tab" onclick="switchTab('upload')">파일 업로드</button>
+    </div>
+
+    <div id="tab-paste">
+      <textarea id="htmlcontent" placeholder="여기에 HTML / CSS / JS 코드를 붙여넣으세요..."></textarea>
+    </div>
+
+    <div id="tab-upload" style="display:none">
+      <div class="file-drop" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        클릭하거나 파일을 드래그해서 올려주세요<br>
+        <span style="font-size:11px; margin-top:4px; display:block;">.html .css .js .json .md .txt</span>
+        <input type="file" id="fileInput" style="display:none" accept=".html,.htm,.css,.js,.json,.md,.txt" onchange="handleFile(this)">
+      </div>
+      <p class="hint" id="uploadHint">파일을 선택하면 내용이 붙여넣기 탭으로 불러와져요</p>
+    </div>
+  </div>
+
+  <!-- 액션 -->
+  <div class="btn-row">
+    <button class="btn primary" id="deployBtn" onclick="deploy()">
+      <span id="btnIcon">↑</span>
+      <span id="btnText">GitHub에 배포</span>
+    </button>
+    <button class="btn" onclick="openPage()">페이지 열기 ↗</button>
+    <button class="btn" onclick="clearContent()" style="margin-left: auto;">내용 지우기</button>
+  </div>
+
+  <div id="status" class="status"></div>
+  <div id="deployedLink"></div>
+
+</div>
+
+<script>
+// ── 초기화 ──────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function load() {
+  const token = localStorage.getItem('jk_gh_token');
+  if (token) { $('token').value = token; $('tokenHint').textContent = '✓ 저장된 토큰 불러옴'; }
+  renderRepos();
+}
+
+// ── Token ─────────────────────────────────────────
+function toggleToken() {
+  const t = $('token');
+  t.type = t.type === 'password' ? 'text' : 'password';
+}
+function saveToken() {
+  const val = $('token').value.trim();
+  if (!val) return;
+  localStorage.setItem('jk_gh_token', val);
+  $('tokenHint').textContent = '✓ 저장 완료';
+}
+
+// ── Repos ─────────────────────────────────────────
+function getRepos() {
+  try { return JSON.parse(localStorage.getItem('jk_repos') || '[]'); } catch { return []; }
+}
+function saveRepo() {
+  const val = $('repoInput').value.trim();
+  if (!val || !val.includes('/')) return;
+  const repos = getRepos();
+  if (!repos.includes(val)) { repos.unshift(val); localStorage.setItem('jk_repos', JSON.stringify(repos.slice(0, 10))); }
+  renderRepos();
+}
+function removeRepo(repo) {
+  const repos = getRepos().filter(r => r !== repo);
+  localStorage.setItem('jk_repos', JSON.stringify(repos));
+  renderRepos();
+}
+function renderRepos() {
+  const repos = getRepos();
+  const el = $('savedRepos');
+  if (!repos.length) { el.innerHTML = ''; return; }
+  el.innerHTML = repos.map(r =>
+    `<span class="repo-tag" onclick="selectRepo('${r}')">
+      ${r}
+      <span class="remove" onclick="event.stopPropagation();removeRepo('${r}')">×</span>
+    </span>`
+  ).join('');
+}
+function selectRepo(repo) {
+  $('repoInput').value = repo;
+}
+
+// ── Tabs ──────────────────────────────────────────
+function switchTab(name) {
+  ['paste','upload'].forEach(t => {
+    $('tab-'+t).style.display = t === name ? 'block' : 'none';
+    document.querySelectorAll('.tab')[['paste','upload'].indexOf(t)].classList.toggle('active', t === name);
+  });
+}
+
+// ── File Upload ───────────────────────────────────
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    $('htmlcontent').value = e.target.result;
+    $('uploadHint').textContent = '✓ ' + file.name + ' 불러옴 → 붙여넣기 탭에 있어요';
+    if ($('filepath').value === 'index.html') $('filepath').value = file.name;
+    switchTab('paste');
+  };
+  reader.readAsText(file);
+}
+
+const dz = $('dropzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile({ files: [file] });
+});
+
+// ── Deploy ────────────────────────────────────────
+function showStatus(msg, type) {
+  const el = $('status');
+  el.textContent = msg; el.className = 'status ' + type; el.style.display = 'block';
+}
+
+async function deploy() {
+  const token = $('token').value.trim();
+  const repo  = $('repoInput').value.trim();
+  const path  = $('filepath').value.trim() || 'index.html';
+  const content = $('htmlcontent').value;
+
+  if (!token)   return showStatus('GitHub Token을 입력해주세요.', 'error');
+  if (!repo || !repo.includes('/')) return showStatus('Repository를 owner/repo 형식으로 입력해주세요.', 'error');
+  if (!content) return showStatus('배포할 파일 내용을 입력해주세요.', 'error');
+
+  const btn = $('deployBtn');
+  btn.disabled = true;
+  $('btnIcon').innerHTML = '<span class="spinner"></span>';
+  $('btnText').textContent = '배포 중...';
+  $('deployedLink').innerHTML = '';
+  showStatus('GitHub 연결 중...', 'info');
+
+  const headers = {
+    'Authorization': 'token ' + token,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+  };
+
+  try {
+    // 기존 파일 SHA 확인
+    showStatus('기존 파일 확인 중...', 'info');
+    let sha = null;
+    try {
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, { headers });
+      if (res.ok) sha = (await res.json()).sha;
+    } catch {}
+
+    // 업로드
+    showStatus('파일 업로드 중...', 'info');
+    const encoded = btoa(unescape(encodeURIComponent(content)));
+    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ message: `deploy: ${path}`, content: encoded, ...(sha ? { sha } : {}) })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || '업로드 실패 (' + res.status + ')');
+    }
+
+    // 자동 repo 저장
+    saveRepo();
+
+    // Pages URL 계산
+    const [owner, repoName] = repo.split('/');
+    const isRoot = repoName === owner + '.github.io';
+    const suffix = path === 'index.html' ? '' : path;
+    const pageUrl = isRoot
+      ? `https://${owner}.github.io/${suffix}`
+      : `https://${owner}.github.io/${repoName}/${suffix}`;
+
+    showStatus(`✓ 업로드 완료!\nGitHub Pages 반영까지 약 1~2분 소요돼요.`, 'success');
+    $('deployedLink').innerHTML = `<a class="success-link" href="${pageUrl}" target="_blank">↗ ${pageUrl}</a>`;
+
+  } catch(e) {
+    showStatus('오류: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    $('btnIcon').textContent = '↑';
+    $('btnText').textContent = 'GitHub에 배포';
+  }
+}
+
+function openPage() {
+  const repo = $('repoInput').value.trim();
+  const path = $('filepath').value.trim() || 'index.html';
+  if (!repo.includes('/')) return;
+  const [owner, repoName] = repo.split('/');
+  const isRoot = repoName === owner + '.github.io';
+  const suffix = path === 'index.html' ? '' : path;
+  const url = isRoot
+    ? `https://${owner}.github.io/${suffix}`
+    : `https://${owner}.github.io/${repoName}/${suffix}`;
+  window.open(url, '_blank');
+}
+
+function clearContent() {
+  $('htmlcontent').value = '';
+  $('status').style.display = 'none';
+  $('deployedLink').innerHTML = '';
+}
+
+load();
+</script>
+</body>
+</html>
