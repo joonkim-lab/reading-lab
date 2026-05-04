@@ -8,27 +8,27 @@
 <style>
 /* ── 변수 ── */
 :root {
-  --ink: #18130f;
-  --paper: #f6f1e9;
-  --paper2: #ede7db;
-  --cream: #faf7f2;
-  --amber: #b8722a;
-  --amber2: #d4903a;
-  --amber-pale: #f5e6cc;
-  --rust: #8b3522;
-  --sage: #3d6142;
-  --sage-pale: #dceadc;
-  --blue: #2a4a7a;
-  --blue-pale: #d8e4f4;
-  --muted: #7a6e62;
-  --border: #d8d0c4;
-  --hl: #fdf3d0;
+  --ink: #111111;
+  --paper: #ffffff;
+  --paper2: #f4f4f4;
+  --cream: #fafafa;
+  --amber: #111111;
+  --amber2: #444444;
+  --amber-pale: #eeeeee;
+  --rust: #cc0000;
+  --sage: #1a6b3a;
+  --sage-pale: #e6f4ec;
+  --blue: #1a3a6b;
+  --blue-pale: #e6eef8;
+  --muted: #888888;
+  --border: #e0e0e0;
+  --hl: #f8f8f8;
   --serif: 'Noto Serif KR', serif;
   --sans: 'Noto Sans KR', sans-serif;
   --mono: 'DM Mono', monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { background: var(--paper); color: var(--ink); font-family: var(--sans); min-height: 100vh; }
+html, body { background: #f4f4f4; color: var(--ink); font-family: var(--sans); min-height: 100vh; }
 
 /* ── 레이아웃 ── */
 .app { display: flex; min-height: 100vh; }
@@ -96,7 +96,7 @@ html, body { background: var(--paper); color: var(--ink); font-family: var(--san
 .sb-api { padding: 10px 12px 14px; border-top: 1px solid rgba(255,255,255,0.06); }
 .sb-api-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.15); }
-.dot.ok { background: #5cb85c; }
+.dot.ok { background: #22aa55; }
 .sb-api-lbl { font-size: 10px; color: rgba(255,255,255,0.3); font-family: var(--mono); }
 .sb-api input {
   width: 100%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
@@ -114,7 +114,7 @@ html, body { background: var(--paper); color: var(--ink); font-family: var(--san
 .topbar-title { font-family: var(--serif); font-size: 18px; font-weight: 700; }
 .topbar-right { display: flex; align-items: center; gap: 8px; }
 .topbar-right .dot { background: rgba(0,0,0,.15); }
-.topbar-right .dot.ok { background: #5cb85c; }
+.topbar-right .dot.ok { background: #22aa55; }
 #t-api-wrap input {
   background: var(--paper2); border: 1px solid var(--border); border-radius: 7px;
   padding: 6px 10px; font-size: 11px; font-family: var(--mono); color: var(--ink);
@@ -129,7 +129,7 @@ html, body { background: var(--paper); color: var(--ink); font-family: var(--san
 /* ── 공통 컴포넌트 ── */
 .card { background: var(--cream); border: 1px solid var(--border); border-radius: 13px; padding: 20px; margin-bottom: 16px; }
 .card-title { font-family: var(--serif); font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.badge { font-size: 9px; font-family: var(--mono); padding: 2px 8px; border-radius: 20px; background: var(--amber); color: #fff; }
+.badge { font-size: 9px; font-family: var(--mono); padding: 2px 8px; border-radius: 20px; background: #111; color: #fff; }
 .badge-g { background: var(--sage); }
 .badge-b { background: var(--blue); }
 
@@ -150,8 +150,8 @@ html, body { background: var(--paper); color: var(--ink); font-family: var(--san
   font-family: var(--sans); border: none; cursor: pointer; transition: all .15s;
 }
 .btn:active { transform: scale(.97); }
-.btn-a { background: var(--amber); color: #fff; }
-.btn-a:hover { background: var(--amber2); }
+.btn-a { background: #111; color: #fff; }
+.btn-a:hover { background: #333; }
 .btn-g { background: var(--sage); color: #fff; }
 .btn-b { background: var(--blue); color: #fff; }
 .btn-o { background: var(--paper2); color: var(--ink); border: 1px solid var(--border); }
@@ -185,9 +185,9 @@ html, body { background: var(--paper); color: var(--ink); font-family: var(--san
 .br-author { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .br-tags { display: flex; align-items: center; gap: 7px; margin-top: 6px; flex-wrap: wrap; }
 .br-status { font-size: 9px; font-family: var(--mono); padding: 2px 7px; border-radius: 20px; display: inline-block; }
-.st-r { background: var(--sage-pale); color: var(--sage); }
-.st-d { background: var(--amber-pale); color: var(--amber); }
-.st-q { background: var(--paper2); color: var(--muted); }
+.st-r { background: #111; color: #fff; }
+.st-d { background: #555; color: #fff; }
+.st-q { background: #eee; color: #888; }
 .br-cards { font-size: 10px; color: var(--muted); font-family: var(--mono); }
 .br-del {
   flex-shrink: 0; padding: 0 16px; height: 100%; min-height: 68px;
@@ -258,10 +258,10 @@ html, body { background: var(--paper); color: var(--ink); font-family: var(--san
 .bcard { background: var(--cream); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .bcard-top { padding: 12px 14px 10px; position: relative; }
 .bcard-thumb { width: 42px; height: 34px; border-radius: 4px; object-fit: cover; float: right; margin: 0 0 4px 10px; }
-.bcard-quote { font-family: var(--serif); font-size: 13px; line-height: 1.65; color: var(--ink); border-left: 3px solid var(--amber); padding-left: 10px; }
+.bcard-quote { font-family: var(--serif); font-size: 13px; line-height: 1.65; color: var(--ink); border-left: 3px solid #111; padding-left: 10px; }
 .bcard-quote.clamped { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.bcard-key { font-size: 10px; background: var(--amber-pale); color: var(--amber); padding: 3px 8px; border-radius: 5px; font-family: var(--mono); display: inline-block; margin-top: 6px; }
-.bcard-mid { padding: 8px 14px 10px; background: var(--hl); border-top: 1px solid #e8d88a; }
+.bcard-key { font-size: 10px; background: #111; color: #fff; padding: 3px 8px; border-radius: 5px; font-family: var(--mono); display: inline-block; margin-top: 6px; }
+.bcard-mid { padding: 8px 14px 10px; background: #f8f8f8; border-top: 1px solid var(--border); }
 .bcard-thought-lbl { font-size: 9px; font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 3px; }
 .bcard-thought { font-size: 12px; color: var(--ink); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .bcard-ai { padding: 12px 14px; background: var(--ink); display: none; }
@@ -278,9 +278,9 @@ html, body { background: var(--paper); color: var(--ink); font-family: var(--san
 .img-preview-wrap { border-radius: 8px; overflow: hidden; margin-bottom: 12px; display: none; }
 .img-preview-wrap.on { display: block; }
 .img-preview-wrap img { width: 100%; max-height: 190px; object-fit: cover; display: block; }
-#ocr-preview-box { background: var(--hl); border: 1px solid #ddd08a; border-radius: 8px; padding: 11px 13px; margin-bottom: 14px; display: none; }
+#ocr-preview-box { background: #f8f8f8; border: 1px solid #ddd; border-radius: 8px; padding: 11px 13px; margin-bottom: 14px; display: none; }
 #ocr-preview-box .ocr-lbl { font-size: 9px; font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; display: block; }
-#ocr-preview-text { font-family: var(--serif); font-size: 13px; line-height: 1.7; border-left: 3px solid var(--amber); padding-left: 10px; }
+#ocr-preview-text { font-family: var(--serif); font-size: 13px; line-height: 1.7; border-left: 3px solid #111; padding-left: 10px; }
 
 /* ── 융합 카드 ── */
 .fcard { background: var(--blue-pale); border: 1px solid #b8ceee; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
@@ -328,6 +328,10 @@ input[type=checkbox] { accent-color: var(--amber); width: 15px; height: 15px; }
     <div class="sb-books" id="sb-books"></div>
   </div>
   <div class="sb-api">
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button onclick="exportData()" style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);border-radius:7px;padding:7px 0;font-size:11px;font-family:var(--mono);cursor:pointer;">⬇ 백업</button>
+      <label style="flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);border-radius:7px;padding:7px 0;font-size:11px;font-family:var(--mono);cursor:pointer;text-align:center;">⬆ 복원<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
+    </div>
     <div class="sb-api-row">
       <div class="dot" id="sb-dot"></div>
       <span class="sb-api-lbl" id="sb-lbl">API 키 없음</span>
@@ -355,12 +359,16 @@ input[type=checkbox] { accent-color: var(--amber); width: 15px; height: 15px; }
 
     <!-- ── 서재 ── -->
     <div class="screen on" id="screen-library">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
         <div>
           <h2 style="font-family:var(--serif);font-size:22px;">내 서재</h2>
           <span style="font-size:11px;color:var(--muted);font-family:var(--mono);" id="lib-count">0권</span>
         </div>
-        <button class="btn btn-a" onclick="goScreen('add')">✚ 책 등록</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-o" style="padding:7px 12px;font-size:12px;" onclick="exportData()">⬇ 백업</button>
+          <label class="btn btn-o" style="padding:7px 12px;font-size:12px;cursor:pointer;">⬆ 복원<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
+          <button class="btn btn-a" onclick="goScreen('add')">✚ 책 등록</button>
+        </div>
       </div>
       <div id="lib-list"></div>
     </div>
@@ -578,8 +586,42 @@ function loadData() {
   D.apiKey = localStorage.getItem('rl2_key') || '';
 }
 function saveData() {
-  localStorage.setItem('rl2', JSON.stringify({ books: D.books, cards: D.cards, fusions: D.fusions }));
+  const data = { books: D.books, cards: D.cards, fusions: D.fusions };
+  localStorage.setItem('rl2', JSON.stringify(data));
   if (D.apiKey) localStorage.setItem('rl2_key', D.apiKey);
+  // 자동 백업: 변경할 때마다 별도 키에도 저장
+  localStorage.setItem('rl2_auto_backup', JSON.stringify({ ...data, savedAt: new Date().toISOString() }));
+}
+
+function exportData() {
+  const data = { books: D.books, cards: D.cards, fusions: D.fusions, exportedAt: new Date().toISOString(), version: 2 };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','');
+  a.href = url; a.download = 'reading-lab-' + date + '.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('백업 파일 다운로드됨 ✓');
+}
+
+function importData(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.books) { toast('올바른 백업 파일이 아니에요'); return; }
+      if (!confirm('현재 데이터를 백업 파일로 교체할까요?')) return;
+      D.books = data.books || [];
+      D.cards = data.cards || {};
+      D.fusions = data.fusions || [];
+      saveData();
+      renderLibrary(); renderSidebar();
+      toast('복원 완료 ✓ ' + D.books.length + '권');
+    } catch(e) { toast('파일을 읽을 수 없어요'); }
+  };
+  reader.readAsText(file);
+  input.value = '';
 }
 loadData();
 
@@ -972,19 +1014,19 @@ ${thought ? '독자의 생각: '+thought : ''}
 **연결 키워드** (3~5개)${thought ? '\n**내 생각 요약** (독자의 생각을 한 문장으로 압축)' : ''}`;
 
   callAI(prompt, $$('card-body'), ai, resp => {
-    // Extract clean quote: strip markdown headers like ## 추출된 텍스트 etc.
-    const rawQuote = D.ocrText || '';
-    const cleanQuote = rawQuote
-      .replace(/^#{1,3}\s+\*?\*?[^
-*]+\*?\*?\s*
-?/gm, '') // strip ## headers
-      .replace(/\*\*/g, '')  // strip bold markers
+    // Clean quote: remove markdown, take first 300 chars
+    const cleanQuote = (D.ocrText || '')
+      .split('\n')
+      .filter(l => !l.startsWith('#') && l.trim() !== '')
+      .join(' ')
+      .replace(/\*\*/g, '')
       .trim()
-      .split('\n').slice(0,4).join(' ') // take first 4 lines only
-      .slice(0, 300); // max 300 chars
+      .slice(0, 300);
     // Extract thought summary
-    const tsMatch = resp.match(/\*\*내 생각 요약\*\*\n?([^\n*]+)/);
-    const thoughtSummary = tsMatch ? tsMatch[1].trim() : '';
+    const tsIdx = resp.indexOf('**내 생각 요약**');
+    const thoughtSummary = tsIdx >= 0
+      ? resp.slice(tsIdx + 9).split('\n').find(l => l.trim()) || ''
+      : '';
     const card = { id:Date.now(), quote:cleanQuote, thought, thoughtSummary, imgThumb:D.imgData||'', aiSummary:resp, date:new Date().toLocaleDateString('ko-KR') };
     if (!D.cards[b.id]) D.cards[b.id] = [];
     D.cards[b.id].unshift(card);
