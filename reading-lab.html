@@ -279,7 +279,7 @@ html, body { background: #f4f4f4; color: var(--ink); font-family: var(--sans); m
 .img-preview-wrap { border-radius: 8px; overflow: hidden; margin-bottom: 12px; display: none; }
 .img-preview-wrap.on { display: block; }
 .img-preview-wrap img { width: 100%; max-height: 190px; object-fit: cover; display: block; }
-#ocr-preview-box { background: #f8f8f8; border: 1px solid #ddd; border-radius: 8px; padding: 11px 13px; margin-bottom: 14px; display: none; }
+#ocr-preview-box { background: #f8f8f8; border: 1px solid #ddd; border-radius: 8px; padding: 11px 13px; margin-bottom: 14px; display: none; max-height: 200px; overflow-y: auto; }
 #ocr-preview-box .ocr-lbl { font-size: 9px; font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; display: block; }
 #ocr-preview-text { font-family: var(--serif); font-size: 13px; line-height: 1.7; border-left: 3px solid #111; padding-left: 10px; }
 
@@ -952,10 +952,10 @@ function backToCs1() {
   $$('cs1').classList.add('on'); $$('cs2').classList.remove('on');
 }
 function goToCs2(text) {
-  if (text) {
-    const m = text.match(/\*\*핵심 문장\*\*\n?([\s\S]*?)(?:\n\n|$)/);
-    const preview = m ? m[1].trim() : text.replace(/\*\*/g,'').split('\n').slice(0,3).join(' ');
-    $$('ocr-preview-text').textContent = preview;
+  if (text && text.trim()) {
+    // 전체 텍스트 그대로 표시 (줄바꿈 유지)
+    $$('ocr-preview-text').style.whiteSpace = 'pre-wrap';
+    $$('ocr-preview-text').textContent = text.trim();
     $$('ocr-preview-box').style.display = 'block';
   } else {
     $$('ocr-preview-box').style.display = 'none';
@@ -975,23 +975,23 @@ function runOCR() {
     method: 'POST',
     headers: { 'Content-Type':'application/json','x-api-key':D.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6', max_tokens: 400,
+      model: 'claude-haiku-4-5-20251001', max_tokens: 600,
       messages: [{ role:'user', content:[
         { type:'image', source:{ type:'base64', media_type:'image/jpeg', data:b64 } },
-        { type:'text', text:'이 책 페이지에서 가장 핵심적인 문장 1~2개만 골라서 그대로 써줘. 마크다운 기호(##, **, > 등) 없이 순수 텍스트로만. 설명이나 제목 없이 문장만.' }
+        { type:'text', text:'이 책 페이지의 텍스트를 전부 그대로 읽어줘. 마크다운 기호(##, **, > 등) 없이 순수 텍스트로만. 설명이나 제목 없이 읽히는 내용만.' }
       ]}]
     })
   }).then(r=>r.json()).then(data => {
     aiLoading(ai, false);
     if (data.error) { $$('ocr-body').innerHTML='<div class="err-msg">❌ '+data.error.message+'</div>'; return; }
     const raw = data.content?.[0]?.text || '';
-    // 마크다운 헤더/볼드/인용 제거해서 순수 텍스트만 저장
+    // 마크다운 기호만 제거, 전체 텍스트 유지
     const clean = raw
       .split('\n')
       .filter(l => !l.startsWith('#') && !l.startsWith('>') && l.trim() !== '')
       .map(l => l.replace(/\*\*/g, '').replace(/^[-•] /, '').trim())
-      .filter(l => l.length > 4)
-      .join(' ')
+      .filter(l => l.length > 1)
+      .join('\n')
       .trim();
     $$('ocr-body').innerHTML = fmtAI(raw);
     D.ocrText = clean;
@@ -1202,7 +1202,7 @@ async function callAI(prompt, bodyEl, aiBox, onDone) {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':D.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,messages:[{role:'user',content:prompt}]})
     });
     const data = await r.json();
     aiLoading(aiBox, false);
