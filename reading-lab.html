@@ -202,7 +202,8 @@ html, body { background: #f4f4f4; color: var(--ink); font-family: var(--sans); m
 .ai-box.on { display: block; }
 .ai-lbl { font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--amber2); font-family: var(--mono); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 .ai-body { font-family: var(--serif); font-size: 13.5px; line-height: 1.9; color: #e8e0d2; }
-.ai-body strong { color: var(--amber2); }
+.ai-body code { color: #e8a020; background: rgba(232,160,32,0.15); padding: 1px 5px; border-radius: 3px; font-family: var(--mono); font-size: 12px; }
+.ai-body strong { color: #e8a020; }
 .ai-body table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12.5px; }
 .ai-body th { background: rgba(184,114,42,.25); color: var(--amber2); padding: 7px 9px; text-align: left; border: 1px solid rgba(255,255,255,.09); font-family: var(--mono); font-size: 11px; }
 .ai-body td { padding: 7px 9px; border: 1px solid rgba(255,255,255,.07); color: #d0c8bc; vertical-align: top; line-height: 1.6; }
@@ -1072,7 +1073,7 @@ function renderCards() {
           '<div class="bcard-quote clamped" id="bq'+c.id+'">'+(c.quote||'(이미지 캡처)')+'</div>' +
           keyLine +
         '</div>' +
-        (c.thought ? '<div class="bcard-mid"><span class="bcard-thought-lbl">💭 내 생각</span><div class="bcard-thought">'+(c.thoughtSummary||c.thought)+'</div></div>' : '') +
+        (c.thought && (c.thoughtSummary||c.thought).replace(/\*/g,'').trim() ? '<div class="bcard-mid"><span class="bcard-thought-lbl">💭 내 생각</span><div class="bcard-thought">'+(c.thoughtSummary||c.thought).replace(/\*/g,'').trim()+'</div></div>' : '') +
         '<div class="bcard-ai" id="ba'+c.id+'"><div style="font-size:9px;font-family:var(--mono);color:var(--amber2);letter-spacing:.15em;margin-bottom:8px;">✦ AI 정리</div><div class="ai-body" style="font-size:12px;">'+fmtAI(c.aiSummary||'')+'</div></div>' +
         '<div class="bcard-footer">' +
           '<button class="bcard-expand" onclick="toggleCard('+c.id+')">더 보기 ▾</button>' +
@@ -1231,7 +1232,7 @@ function fmtAI(text) {
     } else {
       if (inTable) { html += tHtml+'</table>'; inTable=false; tHtml=''; }
       if (/^\*\*(.+)\*\*$/.test(ln.trim())) {
-        html += '<strong style="display:block;margin:12px 0 5px;color:var(--amber2);font-size:12.5px;letter-spacing:.04em;">'+ln.replace(/\*\*/g,'')+'</strong>';
+        html += '<strong style="display:block;margin:12px 0 5px;color:#e8a020;font-size:12.5px;letter-spacing:.04em;">'+ln.replace(/\*\*/g,'')+'</strong>';
       } else if (/\*\*/.test(ln)) {
         html += ln.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>') + '<br>';
       } else if (ln.startsWith('- ') || ln.startsWith('• ')) {
