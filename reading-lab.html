@@ -1012,6 +1012,7 @@ function saveCard() {
   if (!D.curBook) { toast('책을 먼저 선택해주세요'); return; }
   const thought = $$('cap-thought').value.trim();
   const b = D.curBook;
+  console.log('saveCard 실행:', b.title, 'ocrText:', D.ocrText.slice(0,30));
 
   // AI 호출 없이 바로 저장 — 분석은 '더 보기' 눌렀을 때 실행
   const cleanQuote = (D.ocrText || '')
@@ -1049,6 +1050,11 @@ function saveCard() {
 
   const cs = $$('card-stat'); if(cs) cs.textContent = D.cards[b.id].length;
   toast('카드 저장됨 ✓');
+  // 저장 후 카드 목록으로 스크롤
+  setTimeout(() => {
+    const board = $$('board');
+    if (board) board.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 150);
 }
 
 // ═══════════════════════════════
