@@ -310,37 +310,7 @@ input[type=checkbox] { accent-color: var(--amber); width: 15px; height: 15px; }
 .divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
 </style>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBA5dg9VkUmXz0rmBQBsiFOwolyl1EPdGk",
-    authDomain: "reading-lab-6d67e.firebaseapp.com",
-    projectId: "reading-lab-6d67e",
-    storageBucket: "reading-lab-6d67e.firebasestorage.app",
-    messagingSenderId: "21451249862",
-    appId: "1:21451249862:web:d83d2fbd8c16001c7f1fc7"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window._db = db;
-  window._fbReady = true;
-  window._doc = doc;
-  window._setDoc = setDoc;
-  window._getDoc = getDoc;
-
-  // Firebase 준비되면 최신 데이터 로드
-  if (window.fbLoadData) {
-    window.fbLoadData();
-  } else {
-    window.addEventListener('load', () => {
-      if (window.fbLoadData) window.fbLoadData();
-    });
-  }
-</script>
 </head>
 <body>
 <div class="app">
@@ -611,47 +581,15 @@ const D = {
 // 저장/로드
 // ═══════════════════════════════
 // ── Firebase 데이터 저장/로드 ──
-const FB_USER = 'joonkim'; // 단일 사용자
-
-async function saveData() {
-  // localStorage 백업도 유지
+function saveData() {
   const data = { books: D.books, cards: D.cards, fusions: D.fusions };
   localStorage.setItem('rl2', JSON.stringify(data));
   localStorage.setItem('rl2_auto_backup', JSON.stringify({ ...data, savedAt: new Date().toISOString() }));
   if (D.apiKey) localStorage.setItem('rl2_key', D.apiKey);
-
-  // Firebase 저장
-  if (!window._fbReady) return;
-  try {
-    await window._setDoc(window._doc(window._db, 'users', FB_USER), {
-      books: D.books,
-      cards: D.cards,
-      fusions: D.fusions,
-      updatedAt: new Date().toISOString()
-    });
-  } catch(e) { console.warn('Firebase 저장 실패:', e); }
 }
 
-async function loadData() {
-  // API 키는 localStorage에서
+function loadData() {
   D.apiKey = localStorage.getItem('rl2_key') || '';
-
-  // Firebase에서 로드 시도
-  if (window._fbReady) {
-    try {
-      const snap = await window._getDoc(window._doc(window._db, 'users', FB_USER));
-      if (snap.exists()) {
-        const s = snap.data();
-        D.books   = s.books   || [];
-        D.cards   = s.cards   || {};
-        D.fusions = s.fusions || [];
-        console.log('Firebase 로드 완료:', D.books.length + '권');
-        return;
-      }
-    } catch(e) { console.warn('Firebase 로드 실패, localStorage 사용:', e); }
-  }
-
-  // Firebase 실패 시 localStorage fallback
   try {
     const s = JSON.parse(localStorage.getItem('rl2') || '{}');
     D.books   = s.books   || [];
@@ -660,14 +598,7 @@ async function loadData() {
   } catch(e) {}
 }
 
-// Firebase 준비 후 로드 (모듈이 먼저 로드되면 즉시, 아니면 이벤트로)
-window.fbLoadData = async function() {
-  await loadData();
-  renderLibrary();
-  renderSidebar();
-  setApiKey(D.apiKey);
-  if (D.apiKey) { $$('sb-key').value = D.apiKey; }
-};
+
 
 function exportData() {
   const data = { books: D.books, cards: D.cards, fusions: D.fusions, exportedAt: new Date().toISOString(), version: 2 };
@@ -1079,51 +1010,45 @@ function runOCR() {
 // ═══════════════════════════════
 function saveCard() {
   if (!D.curBook) { toast('책을 먼저 선택해주세요'); return; }
-  if (!D.apiKey)  { toast('API 키를 설정해주세요'); return; }
   const thought = $$('cap-thought').value.trim();
-  const ai = $$('card-ai'); ai.classList.add('on');
-  $$('card-body').innerHTML = '';
-  aiLoading(ai, true);
   const b = D.curBook;
-  const prompt = `너는 독서 노트 설계 전문가야.
 
-책: ${b.title}
-직업/역할: ${b.job||'독자'}
-캡처 내용: "${D.ocrText||'(이미지 캡처)'}"
-${thought ? '독자의 생각: '+thought : ''}
+  // AI 호출 없이 바로 저장 — 분석은 '더 보기' 눌렀을 때 실행
+  const cleanQuote = (D.ocrText || '')
+    .split('\n')
+    .filter(l => !l.startsWith('#') && l.trim() !== '')
+    .join('\n')
+    .replace(/\*\*/g, '')
+    .trim()
+    .slice(0, 500);
 
-아래 형식으로 정확히 출력해줘:
-**핵심 한 줄** (캡처 내용 핵심, 15자 이내)
-**왜 중요한가** (${b.job||'독자'} 입장 두 문장)
-**써먹을 상황**\n- 상황 1:\n- 상황 2:
-**연결 키워드** (3~5개)${thought ? '\n**내 생각 요약** (독자의 생각을 한 문장으로 압축)' : ''}`;
+  const card = {
+    id: Date.now(),
+    quote: cleanQuote,
+    thought,
+    thoughtSummary: '',
+    imgThumb: D.imgData || '',
+    aiSummary: '',  // 비워둠 — 더 보기 누를 때 생성
+    date: new Date().toLocaleDateString('ko-KR'),
+    bookTitle: b.title,
+    bookJob: b.job || '독자'
+  };
 
-  callAI(prompt, $$('card-body'), ai, resp => {
-    // Clean quote: remove markdown, take first 300 chars
-    const cleanQuote = (D.ocrText || '')
-      .split('\n')
-      .filter(l => !l.startsWith('#') && l.trim() !== '')
-      .join(' ')
-      .replace(/\*\*/g, '')
-      .trim()
-      .slice(0, 300);
-    // Extract thought summary
-    const tsIdx = resp.indexOf('**내 생각 요약**');
-    const thoughtSummary = tsIdx >= 0
-      ? resp.slice(tsIdx + 9).split('\n').find(l => l.trim()) || ''
-      : '';
-    const card = { id:Date.now(), quote:cleanQuote, thought, thoughtSummary, imgThumb:D.imgData||'', aiSummary:resp, date:new Date().toLocaleDateString('ko-KR') };
-    if (!D.cards[b.id]) D.cards[b.id] = [];
-    D.cards[b.id].unshift(card);
-    saveData(); renderCards();
-    D.ocrText=''; D.imgData='';
-    $$('cap-thought').value='';
-    $$('img-preview-wrap').classList.remove('on');
-    $$('ocr-ai').classList.remove('on');
-    setTimeout(() => { $$('cs2').classList.remove('on'); $$('cs1').classList.add('on'); $$('card-ai').classList.remove('on'); }, 1000);
-    const cs = $$('card-stat'); if(cs) cs.textContent=(D.cards[b.id]||[]).length;
-    toast('카드 저장됨 ✓');
-  });
+  if (!D.cards[b.id]) D.cards[b.id] = [];
+  D.cards[b.id].unshift(card);
+  saveData();
+  renderCards();
+
+  // 초기화
+  D.ocrText = ''; D.imgData = '';
+  $$('cap-thought').value = '';
+  $$('img-preview-wrap').classList.remove('on');
+  $$('ocr-ai').classList.remove('on');
+  $$('cs2').classList.remove('on');
+  $$('cs1').classList.add('on');
+
+  const cs = $$('card-stat'); if(cs) cs.textContent = D.cards[b.id].length;
+  toast('카드 저장됨 ✓');
 }
 
 // ═══════════════════════════════
@@ -1168,6 +1093,49 @@ function toggleCard(id) {
   const on = ai.classList.toggle('on');
   if (q) q.className = 'bcard-quote' + (on ? '' : ' clamped');
   if (btn) btn.textContent = on ? '접기 ▴' : '더 보기 ▾';
+
+  // 처음 펼칠 때 AI 분석 실행
+  if (on) {
+    const card = Object.values(D.cards).flat().find(c => c.id === id);
+    if (card && !card.aiSummary && D.apiKey) {
+      const bodyEl = ai.querySelector('.ai-body');
+      if (bodyEl && bodyEl.innerHTML === '') {
+        aiLoading(ai, true);
+        const prompt = `너는 독서 노트 설계 전문가야.
+책: ${card.bookTitle||''}
+직업/역할: ${card.bookJob||'독자'}
+캡처 내용: "${card.quote||'(이미지 캡처)'}"
+${card.thought ? '독자의 생각: '+card.thought : ''}
+
+아래 형식으로:
+**핵심 한 줄** (15자 이내)
+**왜 중요한가** (두 문장)
+**써먹을 상황**
+- 상황 1:
+- 상황 2:
+**연결 키워드** (3~5개)${card.thought ? '\n**내 생각 요약** (한 문장)' : ''}`;
+        callAI(prompt, bodyEl, ai, resp => {
+          card.aiSummary = resp;
+          // 핵심 한 줄 추출해서 카드 태그 업데이트
+          const m = resp.match(/\*\*핵심 한 줄\*\*\n?([^\n*]+)/);
+          if (m) {
+            const keyEl = document.querySelector('#bc'+id+' .bcard-key');
+            if (keyEl) keyEl.textContent = '# ' + m[1].trim();
+            else {
+              const top = document.querySelector('#bc'+id+' .bcard-top');
+              if (top) { const k = document.createElement('span'); k.className='bcard-key'; k.textContent='# '+m[1].trim(); top.appendChild(k); }
+            }
+          }
+          // 내 생각 요약
+          const tsIdx = resp.indexOf('**내 생각 요약**');
+          if (tsIdx >= 0) {
+            card.thoughtSummary = resp.slice(tsIdx+9).split('\n').find(l=>l.trim())||'';
+          }
+          saveData();
+        });
+      }
+    }
+  }
 }
 
 function delCard(id) {
@@ -1327,25 +1295,13 @@ function fmtAI(text) {
 }
 
 // ═══════════════════════════════
-// 초기화 — localStorage로 먼저 렌더링, Firebase 준비되면 갱신
+// 초기화
 // ═══════════════════════════════
-// 1. localStorage에서 즉시 로드 (빠른 초기 렌더)
-try {
-  const s = JSON.parse(localStorage.getItem('rl2') || '{}');
-  D.books   = s.books   || [];
-  D.cards   = s.cards   || {};
-  D.fusions = s.fusions || [];
-} catch(e) {}
-D.apiKey = localStorage.getItem('rl2_key') || '';
+loadData();
 setApiKey(D.apiKey);
 renderLibrary();
 renderSidebar();
 if (D.apiKey) { $$('sb-key').value = D.apiKey; }
-
-// 2. Firebase 준비되면 최신 데이터로 갱신
-if (window._fbReady) {
-  window.fbLoadData();
-}
 </script>
 </body>
 </html>
