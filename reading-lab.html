@@ -5,6 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Reading Lab</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBA5dg9VkUmXz0rmBQBsiFOwolyl1EPdGk",
+    authDomain: "reading-lab-6d67e.firebaseapp.com",
+    projectId: "reading-lab-6d67e",
+    storageBucket: "reading-lab-6d67e.firebasestorage.app",
+    messagingSenderId: "21451249862",
+    appId: "1:21451249862:web:d83d2fbd8c16001c7f1fc7"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // 전역으로 노출
+  window._db = db;
+  window._fbReady = true;
+  window._doc = doc;
+  window._setDoc = setDoc;
+  window._getDoc = getDoc;
+  window._collection = collection;
+  window._getDocs = getDocs;
+  window._deleteDoc = deleteDoc;
+
+  // Firebase 준비되면 데이터 로드
+  window.addEventListener('load', () => {
+    if (window.fbLoadData) window.fbLoadData();
+  });
+</script>
 <style>
 /* ── 변수 ── */
 :root {
@@ -308,6 +339,37 @@ input[type=range] { accent-color: var(--amber); }
 input[type=checkbox] { accent-color: var(--amber); width: 15px; height: 15px; }
 .divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
 </style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBA5dg9VkUmXz0rmBQBsiFOwolyl1EPdGk",
+    authDomain: "reading-lab-6d67e.firebaseapp.com",
+    projectId: "reading-lab-6d67e",
+    storageBucket: "reading-lab-6d67e.firebasestorage.app",
+    messagingSenderId: "21451249862",
+    appId: "1:21451249862:web:d83d2fbd8c16001c7f1fc7"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window._db = db;
+  window._fbReady = true;
+  window._doc = doc;
+  window._setDoc = setDoc;
+  window._getDoc = getDoc;
+
+  // Firebase 준비되면 최신 데이터 로드
+  if (window.fbLoadData) {
+    window.fbLoadData();
+  } else {
+    window.addEventListener('load', () => {
+      if (window.fbLoadData) window.fbLoadData();
+    });
+  }
+</script>
 </head>
 <body>
 <div class="app">
@@ -577,22 +639,64 @@ const D = {
 // ═══════════════════════════════
 // 저장/로드
 // ═══════════════════════════════
-function loadData() {
+// ── Firebase 데이터 저장/로드 ──
+const FB_USER = 'joonkim'; // 단일 사용자
+
+async function saveData() {
+  // localStorage 백업도 유지
+  const data = { books: D.books, cards: D.cards, fusions: D.fusions };
+  localStorage.setItem('rl2', JSON.stringify(data));
+  localStorage.setItem('rl2_auto_backup', JSON.stringify({ ...data, savedAt: new Date().toISOString() }));
+  if (D.apiKey) localStorage.setItem('rl2_key', D.apiKey);
+
+  // Firebase 저장
+  if (!window._fbReady) return;
+  try {
+    await window._setDoc(window._doc(window._db, 'users', FB_USER), {
+      books: D.books,
+      cards: D.cards,
+      fusions: D.fusions,
+      updatedAt: new Date().toISOString()
+    });
+  } catch(e) { console.warn('Firebase 저장 실패:', e); }
+}
+
+async function loadData() {
+  // API 키는 localStorage에서
+  D.apiKey = localStorage.getItem('rl2_key') || '';
+
+  // Firebase에서 로드 시도
+  if (window._fbReady) {
+    try {
+      const snap = await window._getDoc(window._doc(window._db, 'users', FB_USER));
+      if (snap.exists()) {
+        const s = snap.data();
+        D.books   = s.books   || [];
+        D.cards   = s.cards   || {};
+        D.fusions = s.fusions || [];
+        console.log('Firebase 로드 완료:', D.books.length + '권');
+        return;
+      }
+    } catch(e) { console.warn('Firebase 로드 실패, localStorage 사용:', e); }
+  }
+
+  // Firebase 실패 시 localStorage fallback
   try {
     const s = JSON.parse(localStorage.getItem('rl2') || '{}');
     D.books   = s.books   || [];
     D.cards   = s.cards   || {};
     D.fusions = s.fusions || [];
   } catch(e) {}
-  D.apiKey = localStorage.getItem('rl2_key') || '';
 }
-function saveData() {
-  const data = { books: D.books, cards: D.cards, fusions: D.fusions };
-  localStorage.setItem('rl2', JSON.stringify(data));
-  if (D.apiKey) localStorage.setItem('rl2_key', D.apiKey);
-  // 자동 백업: 변경할 때마다 별도 키에도 저장
-  localStorage.setItem('rl2_auto_backup', JSON.stringify({ ...data, savedAt: new Date().toISOString() }));
-}
+
+// Firebase 준비 후 로드 (모듈이 먼저 로드되면 즉시, 아니면 이벤트로)
+window.fbLoadData = async function() {
+  await loadData();
+  renderLibrary();
+  renderSidebar();
+  setApiKey(D.apiKey);
+  if (D.apiKey) { $$('sb-key').value = D.apiKey; }
+};
 
 function exportData() {
   const data = { books: D.books, cards: D.cards, fusions: D.fusions, exportedAt: new Date().toISOString(), version: 2 };
@@ -1007,7 +1111,8 @@ function saveCard() {
   if (!D.apiKey)  { toast('API 키를 설정해주세요'); return; }
   const thought = $$('cap-thought').value.trim();
   const ai = $$('card-ai'); ai.classList.add('on');
-  $$('card-body').innerHTML = ''; aiLoading(ai, true);
+  $$('card-body').innerHTML = '';
+  aiLoading(ai, true);
   const b = D.curBook;
   const prompt = `너는 독서 노트 설계 전문가야.
 
@@ -1251,13 +1356,24 @@ function fmtAI(text) {
 }
 
 // ═══════════════════════════════
-// 초기화
+// 초기화 — localStorage로 먼저 렌더링, Firebase 준비되면 갱신
 // ═══════════════════════════════
+// 1. localStorage에서 즉시 로드 (빠른 초기 렌더)
+try {
+  const s = JSON.parse(localStorage.getItem('rl2') || '{}');
+  D.books   = s.books   || [];
+  D.cards   = s.cards   || {};
+  D.fusions = s.fusions || [];
+} catch(e) {}
+D.apiKey = localStorage.getItem('rl2_key') || '';
 setApiKey(D.apiKey);
 renderLibrary();
 renderSidebar();
-if (D.apiKey) {
-  $$('sb-key').value = D.apiKey;
+if (D.apiKey) { $$('sb-key').value = D.apiKey; }
+
+// 2. Firebase 준비되면 최신 데이터로 갱신
+if (window._fbReady) {
+  window.fbLoadData();
 }
 </script>
 </body>
