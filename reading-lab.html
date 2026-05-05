@@ -1077,7 +1077,7 @@ function runOCR() {
 // ═══════════════════════════════
 // 카드 저장
 // ═══════════════════════════════
-function saveCard() {
+async function saveCard() {
   if (!D.curBook) { toast('책을 먼저 선택해주세요'); return; }
   const thought = $$('cap-thought').value.trim();
   const b = D.curBook;
@@ -1092,13 +1092,21 @@ function saveCard() {
     .trim()
     .slice(0, 500);
 
+  // 썸네일 생성 (매우 작게 — 저장 용량 최소화)
+  let thumb = '';
+  if (D.imgData) {
+    try {
+      thumb = await resizeImg(D.imgData, 60, 48, 0.5);
+    } catch(e) { thumb = ''; }
+  }
+
   const card = {
     id: Date.now(),
     quote: cleanQuote,
     thought,
     thoughtSummary: '',
-    imgThumb: D.imgData || '',
-    aiSummary: '',  // 비워둠 — 더 보기 누를 때 생성
+    imgThumb: thumb,
+    aiSummary: '',
     date: new Date().toLocaleDateString('ko-KR'),
     bookTitle: b.title,
     bookJob: b.job || '독자'
@@ -1106,7 +1114,7 @@ function saveCard() {
 
   if (!D.cards[b.id]) D.cards[b.id] = [];
   D.cards[b.id].unshift(card);
-  saveData();
+  try { saveData(); } catch(e) { console.warn('저장 실패:', e); }
   renderCards();
 
   // 초기화
